@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->text('text');
             $table->foreignId('question_id');
+            $table->boolean('is_true');
             $table->integer('created_by');
             $table->integer('updated_by');
             $table->foreign('created_by')->references('id')->on('users');
