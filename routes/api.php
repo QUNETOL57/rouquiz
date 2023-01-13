@@ -1,8 +1,6 @@
 <?php
 
-use App\Http\Controllers\TestController;
-use App\Http\Resources\TestResource;
-use App\Models\Test;
+use App\Http\Controllers\Api\TestController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,10 +18,5 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-
-//Route::get('/test/{id}', function ($id) {
-//    return new TestResource(Test::findOrFail($id));
-//});
 
 Route::apiResource('/test', TestController::class);
