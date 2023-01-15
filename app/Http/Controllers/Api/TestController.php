@@ -40,6 +40,7 @@ class TestController extends Controller
      */
     public function show(Test $test)
     {
+        return $test;
         return new TestResource($test);
     }
 
