@@ -50,16 +50,18 @@ class TestController extends Controller
     public function show(Test $test)
     {
         $test->load('questions');
-        dd($test);
         return Inertia::render('Test/Show', ['test' => $test]);
     }
 
-
+    /**
+     * @param $id
+     * @return \Inertia\Response|\Inertia\ResponseFactory
+     */
     public function quiz($id)
     {
-        $test = Test::findOrFail($id);
-        $test->load('questions.answers');
-        return Inertia::render('Test/Quiz', ['test' => $test]);
+        $testModel = Test::findOrFail($id);
+        $test = new TestResource($testModel);
+        return inertia('Test/Quiz', ['test' => new TestResource($test)]);
     }
 
     /**
