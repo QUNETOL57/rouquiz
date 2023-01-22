@@ -8,40 +8,43 @@
             <div v-if="idx < questionsCount">
                 <p class="text-2xl font-bold">{{ currentQuestion.text }}</p>
                 <small>{{ idx + 1 }} / {{ questionsCount }}</small>
+                <p>{{ currentTime }}</p>
                 <label
                     v-for="(answer, index) in currentQuestion.answers"
                     :key="index"
                     :for="index"
                     class="block mt-4 border border-gray-300 rounded-lg py-2 px-6 text-lg"
-                    :class="{'hover:bg-gray-100 cursor-pointer' : index !== Number(selectedAnswer) || selectedAnswer === null, 'bg-indigo-200' : index === Number(selectedAnswer) && selectedAnswer !== null}"
+                    :class="{
+                        'hover:bg-gray-100 cursor-pointer' : index !== Number(selectedAnswer) || selectedAnswer === null,
+                        'bg-indigo-200' : index === Number(selectedAnswer) && selectedAnswer !== null,
+                        'cursor-not-allowed' : currentTime === 0
+                    }"
                 >
                     <input
                         :id="index"
-                        name="answers"
+                        name="answer"
                         type="radio"
                         class="hidden"
                         :value="index"
-                        @change="answered($event)"
-
+                        @change="changeAnswer($event)"
+                        :disabled="currentTime === 0"
                     />
                     {{ answer.text }}
                 </label>
                 <div class="mt-6 flow-root">
                     <button
-                        @click="nextQuestion"
+                        @click="answered"
                         class="float-right bg-indigo-600 text-white text-sm font-bold tracking-wide rounded-full px-5 py-2"
                         :class="{'opacity-50 cursor-not-allowed' : selectedAnswer === null}"
                         :disabled="selectedAnswer === null"
-                        v-show="idx < questionsCount - 1"
                     >
-                        Next &gt;
+                        Ответить &gt;
                     </button>
                     <button
+                        class="float-right bg-indigo-600 text-white text-sm font-bold tracking-wide rounded-full px-5 py-2"
                         @click="showResults"
-                        v-show="selectedAnswer !== '' && idx === questionsCount - 1">
-                        <!--                        class="float-right bg-indigo-600 text-white text-sm font-bold tracking-wide rounded-full px-5 py-2"-->
-                        <!--                    >-->
-                        Finish
+                        v-show="(selectedAnswer === null && currentTime === 0) && idx === questionsCount - 1">
+                        Показать результаты
                     </button>
                 </div>
             </div>
@@ -85,6 +88,8 @@ export default {
         correctAnswers: 0,
         wrongAnswers: 0,
         answers: [],
+        score: [],
+        timerTime: 0
     }),
     computed: {
         questionsCount() {
@@ -93,23 +98,53 @@ export default {
         currentQuestion() {
             return this.test.questions[this.idx];
         },
+        currentTime: {
+            get() {
+                return this.timerTime;
+            },
+            set(newValue) {
+                this.timerTime = newValue
+            }
+        },
+    },
+    mounted() {
+        this.startTimer()
     },
     methods: {
-        answered(e) {
+        changeAnswer(e) {
             this.selectedAnswer = e.target.value;
-            let currentAnswer = this.currentQuestion.answers[this.selectedAnswer];
+        },
+        answered() {
+            this.stopTimer();
+            let currentAnswerId = null;
+            if (this.selectedAnswer !== null) {
+                let currentAnswer = this.currentQuestion.answers[this.selectedAnswer];
+                currentAnswerId = currentAnswer.id;
 
-            if (currentAnswer.is_true) {
-                this.correctAnswers++;
-            } else {
-                this.wrongAnswers++;
+                if (currentAnswer.is_true) {
+                    this.correctAnswers++;
+                } else {
+                    this.wrongAnswers++;
+                }
             }
-            this.answers.push([this.currentQuestion.id, currentAnswer.id]);
+
+            this.answers.push({
+                'question_id': this.currentQuestion.id,
+                'answer_id': currentAnswerId,
+                'time': this.currentQuestion.time - this.currentTime
+            });
+
+            if (this.idx < this.questionsCount - 1) {
+                this.nextQuestion();
+            } else {
+                this.showResults();
+            }
         },
         nextQuestion() {
             this.idx++;
             this.selectedAnswer = null;
             document.querySelectorAll("input").forEach((el) => (el.checked = false));
+            this.startTimer();
         },
         showResults() {
             console.log(this.answers)
@@ -120,7 +155,25 @@ export default {
             this.selectedAnswer = null;
             this.correctAnswers = 0;
             this.wrongAnswers = 0;
+            this.answers = [];
+            this.startTimer();
+        },
+        startTimer() {
+            this.timerTime = this.currentQuestion.time;
+            this.timer = setInterval(() => {
+                this.currentTime--
+            }, 1000)
+        },
+        stopTimer() {
+            clearTimeout(this.timer)
+        },
+    },
+    watch: {
+        currentTime(time) {
+            if (time === 0) {
+                this.answered(null)
+            }
         }
-    }
+    },
 }
 </script>
