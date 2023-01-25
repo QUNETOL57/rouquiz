@@ -78,6 +78,11 @@
 </template>
 
 <script>
+import {ref, watch} from 'vue'
+import {useWindowFocus} from '@vueuse/core'
+
+const focused = useWindowFocus();
+
 export default {
     props: {
         test: Object,
@@ -89,7 +94,9 @@ export default {
         wrongAnswers: 0,
         answers: [],
         score: [],
-        timerTime: 0
+        timerTime: 0,
+        isLeave: false,
+        leaveCount: 0
     }),
     computed: {
         questionsCount() {
@@ -131,7 +138,8 @@ export default {
             this.answers.push({
                 'question_id': this.currentQuestion.id,
                 'answer_id': currentAnswerId,
-                'time': this.currentQuestion.time - this.currentTime
+                'time': this.currentQuestion.time - this.currentTime,
+                'leave_count': this.leaveCount
             });
 
             if (this.idx < this.questionsCount - 1) {
@@ -143,6 +151,7 @@ export default {
         nextQuestion() {
             this.idx++;
             this.selectedAnswer = null;
+            this.leaveCount = 0;
             document.querySelectorAll("input").forEach((el) => (el.checked = false));
             this.startTimer();
         },
@@ -155,6 +164,7 @@ export default {
             this.selectedAnswer = null;
             this.correctAnswers = 0;
             this.wrongAnswers = 0;
+            this.leaveCount = 0;
             this.answers = [];
             this.startTimer();
         },
@@ -173,7 +183,19 @@ export default {
             if (time === 0) {
                 this.answered(null)
             }
+            watch(focused, (isFocused) => {
+                if (isFocused) {
+                    this.isLeave = false;
+                } else {
+                    if (this.isLeave === false) {
+                        this.leaveCount++;
+                        this.isLeave = true;
+                    }
+                }
+            })
+
         }
+
     },
 }
 </script>
