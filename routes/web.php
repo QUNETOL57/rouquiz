@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/quiz/{id}', [TestController::class, 'quiz']);
+Route::get('/list-quiz/{id}', [TestController::class, 'listQuiz']);
 Route::resource('/test', TestController::class);
 
 require __DIR__.'/auth.php';

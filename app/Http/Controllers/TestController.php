@@ -65,6 +65,17 @@ class TestController extends Controller
     }
 
     /**
+     * @param $id
+     * @return \Inertia\Response|\Inertia\ResponseFactory
+     */
+    public function listQuiz($id)
+    {
+        $testModel = Test::findOrFail($id);
+        $test = new TestResource($testModel);
+        return inertia('Test/Quiz/ListQuiz', ['test' => new TestResource($test)]);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      *
      * @param \App\Models\Test $test
